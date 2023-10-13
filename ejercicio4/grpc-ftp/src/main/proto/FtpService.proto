@@ -1,0 +1,33 @@
+syntax = "proto3";
+package pdytr.grpc;
+
+// Request payload
+message FtpRequestRead {
+  // Each message attribute is strongly typed.
+  // You also must assign a "tag" number.
+  // Each tag number is unique within the message.
+  string name = 1;
+  uint64 position = 2;
+  uint64 bytes = 3;
+
+  // This defines a strongly typed list of String
+  //repeated string hobbies = 2;
+
+  // There are many more basics types, like Enum, Map
+  // See https://developers.google.com/protocol-buffers/docs/proto3
+  // for more information.
+}
+
+message FtpResponseRead {
+  bytes data = 1;
+  uint64 bytesReaded = 2;
+}
+
+
+// Defining a Service, a Service can have multiple RPC operations
+service FtpService {
+  // Define a RPC operation
+   //rpc greeting(HelloRequest) returns (stream HelloResponse);
+   rpc read(FtpRequestRead) returns (stream FtpResponseRead);
+}
+
