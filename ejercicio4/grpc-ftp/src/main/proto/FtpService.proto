@@ -24,10 +24,25 @@ message FtpResponseRead {
 }
 
 
+// Request payload
+message WriteRequest {
+  bytes archivo_datos = 1;
+  string nombre_archivo = 2;
+}
+
+message WriteResponse {
+  int32 cant_leidos = 1;
+}
+
+
 // Defining a Service, a Service can have multiple RPC operations
 service FtpService {
   // Define a RPC operation
    //rpc greeting(HelloRequest) returns (stream HelloResponse);
    rpc read(FtpRequestRead) returns (stream FtpResponseRead);
+   rpc write(WriteRequest) returns (WriteResponse);
 }
+
+
+
 

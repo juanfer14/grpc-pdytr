@@ -5,13 +5,20 @@ import pdytr.grpc.FtpServiceOuterClass.FtpResponseRead;
 import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import com.google.protobuf.ByteString;
+
 public class Client
 {
-    
+    private static final String ORIGIN_FOLDER = "C:\\Users\\usuario\\Desktop\\Origen\\"; // Ruta de origen donde se leeran los archivos
+
 
     public static void main( String[] args ) throws Exception
     {
      
+		System.out.println(args[0]);
 		if (
 			(args.length != 4) ||
     		(!args[0].equals("read") && !args[0].equals("write")) ||
@@ -76,7 +83,52 @@ public class Client
 			
 				break;
 			case "write":
-				break;
+
+				//leo las variables de la consulta
+				String arch = args[1];
+				int pos = Integer.parseInt(args[2]);
+				int cant_leer = Integer.parseInt(args[3]);
+				
+				// Obtener los datos del archivo
+				byte[] datosDelArchivo = null;
+
+				//Lee el archivo del directorio local
+				try {
+					String rutaCompleta = ORIGIN_FOLDER + arch;
+
+					File carpetaOrigen = new File(ORIGIN_FOLDER);
+					if (!carpetaOrigen.exists()) {
+						carpetaOrigen.mkdirs();
+					}
+
+					File archivo = new File(carpetaOrigen+"\\"+arch);
+					datosDelArchivo = leerBytesDesdeArchivo(archivo, pos, cant_leer);
+
+				} catch (IOException e) {
+
+					System.out.println("El archivo ingresado no existe en "+ORIGIN_FOLDER); 
+					return;
+				}
+
+
+				//Genera la consulta a hacer al server
+
+				FtpServiceOuterClass.WriteRequest write_request =
+					FtpServiceOuterClass.WriteRequest.newBuilder()
+						.setArchivoDatos(ByteString.copyFrom(datosDelArchivo))
+						.setNombreArchivo(arch)
+						.build();
+
+				System.out.println("Enviando");
+				System.out.println(ByteString.copyFrom(datosDelArchivo));
+
+				//Envia los datos al request al server
+				FtpServiceOuterClass.WriteResponse cant_leidos = 
+					stub.write(write_request);
+
+
+				System.out.println("La cantidad de bytes escritos leídos fue:"+cant_leidos); 
+		
 		}
 				
 
@@ -90,5 +142,19 @@ public class Client
 		channel.shutdownNow().awaitTermination(5, TimeUnit.SECONDS);
 
       }
+    }
+	// Función para leer los bytes desde un archivo dado una posición y cantidad de bytes
+    private static byte[] leerBytesDesdeArchivo(File archivo, int pos, int cant_leer) throws IOException {
+        byte[] datosDelArchivo = new byte[cant_leer];
+        java.io.RandomAccessFile raf = new java.io.RandomAccessFile(archivo, "r");
+
+        try {
+            raf.seek(pos);
+            raf.readFully(datosDelArchivo);
+        } finally {
+            raf.close();
+        }
+
+        return datosDelArchivo;
     }
 }
