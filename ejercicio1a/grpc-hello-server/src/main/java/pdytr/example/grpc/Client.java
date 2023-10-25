@@ -26,13 +26,13 @@ public class Client
 		GreetingServiceGrpc.newBlockingStub(channel);
 
 	      GreetingServiceOuterClass.HelloRequest request =
-		GreetingServiceOuterClass.HelloRequest.newBuilder()
-		  .setName("Ray")
-		  .build();
+                  GreetingServiceOuterClass.HelloRequest.newBuilder()
+                  .setName("Ray")
+                  .build();
 
 	      // Finally, make the call using the stub
 	      GreetingServiceOuterClass.HelloResponse response = 
-		stub.greeting(request);
+		      stub.greeting(request);
 
 	      System.out.println(response);
 

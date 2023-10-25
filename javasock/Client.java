@@ -15,9 +15,9 @@ public class Client
   {
     /* Check the number of command line parameters */
     if ( 
-	(args.length != 3) || 
-	(Integer.valueOf(args[1]) <= 0) ||  
-	(Integer.valueOf(args[2]) <= 0)
+      (args.length != 3) || 
+      (Integer.valueOf(args[1]) <= 0) ||  
+      (Integer.valueOf(args[2]) <= 0)
     )
     {
       System.out.println("3 arguments needed: serverhostname port size_buffer");
@@ -50,7 +50,7 @@ public class Client
     toserver   = new DataOutputStream(socketwithserver.getOutputStream());
 
     /* Buffer to use with communications (and its length) */
-    byte[] buffer = new byte[size_buffer];;
+    byte[] buffer = new byte[size_buffer];
 
     /* LLENO EL BUFFER */
     for (int i = 0; i < buffer.length; i++) {
@@ -61,24 +61,22 @@ public class Client
     long tiempo_antes = System.nanoTime();
 
     /* 
-	Send read data to server 
-	VERIFICO QUE SE ESCRIBAN TODOS LOS BYTES
+	  Send read data to server 
+	  VERIFICO QUE SE ESCRIBAN TODOS LOS BYTES
     */
     int escritos = toserver.size();
     while(escritos != size_buffer){
-	toserver.write(buffer, 0, buffer.length);
-	escritos += toserver.size();
+        toserver.write(buffer, 0, buffer.length);
+        escritos += toserver.size();
     }
     
     /* Recv data back from server (get space) */
     buffer = new byte[size_buffer];
 
-    /*
-	VERIFICO QUE SE LEAN TODOS LOS BYTES
-    */
+    /* VERIFICO QUE SE LEAN TODOS LOS BYTES */
     int leidos = fromserver.read(buffer);
     while(leidos != size_buffer)
-	leidos += fromserver.read(buffer);
+	    leidos += fromserver.read(buffer);
 
 
     /* FINALIZO DE TOMAR EL TIEMPO */

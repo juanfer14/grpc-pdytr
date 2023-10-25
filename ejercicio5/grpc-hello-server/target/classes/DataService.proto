@@ -1,0 +1,20 @@
+syntax = "proto3";
+package pdytr.example.grpc;
+
+// Request payload
+message DataRequest {
+  bytes data = 1;
+  // There are many more basics types, like Enum, Map
+  // See https://developers.google.com/protocol-buffers/docs/proto3
+  // for more information.
+}
+
+message DataResponse {
+  bytes data = 1;
+}
+
+// Defining a Service, a Service can have multiple RPC operations
+service DataService {
+   rpc send(DataRequest) returns (DataResponse);
+}
+
