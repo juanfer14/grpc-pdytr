@@ -23,7 +23,7 @@ import java.nio.file.Paths;
 import io.grpc.stub.StreamObserver;
 
 import com.google.protobuf.ByteString;
-
+import java.util.Date;
 
 public class FtpServiceImpl extends FtpServiceGrpc.FtpServiceImplBase {
 
@@ -119,7 +119,7 @@ public class FtpServiceImpl extends FtpServiceGrpc.FtpServiceImplBase {
         StreamObserver<FtpServiceOuterClass.WriteResponse> responseObserver) {
 
     // Obtén los datos del archivo desde el request
-        
+		
         ByteString archivoDatos = request.getArchivoDatos();
         String nombreArchivo = request.getNombreArchivo();
         // Convierte el ByteString a un array de bytes
@@ -147,6 +147,20 @@ public class FtpServiceImpl extends FtpServiceGrpc.FtpServiceImplBase {
                 // Si el archivo ya existe, abre un FileOutputStream en modo append (agregar al final)
                 FileOutputStream archivoDestino = new FileOutputStream(rutaCompleta, true);
                 archivoDatos.writeTo(archivoDestino);
+
+				Date horaActual = new Date();
+				System.out.println("Hora a la que se recivieron las pedidos de los clientes: " + horaActual);
+				try {
+					System.out.println("Server waiting...");
+					// Pausa la ejecución durante 10 segundos
+					Thread.sleep(50000);
+				} catch (InterruptedException e) {
+					// Manejo de excepciones en caso de interrupción
+					System.out.println("Server continue...");
+					e.printStackTrace();
+				}
+        		
+
                 archivoDestino.close();
                 System.out.println("Datos agregados al archivo existente: " + rutaCompleta);
             } else {
@@ -166,7 +180,8 @@ public class FtpServiceImpl extends FtpServiceGrpc.FtpServiceImplBase {
         FtpServiceOuterClass.WriteResponse response = FtpServiceOuterClass.WriteResponse.newBuilder()
             .setCantLeidos(cantLeidos)
             .build();
-
+	Date horaActual = new Date();
+    System.out.println("Hora a la que se enviaron las respuestas a los clientes: " + horaActual);
     // Use responseObserver to send a single response back
     responseObserver.onNext(response);
 
