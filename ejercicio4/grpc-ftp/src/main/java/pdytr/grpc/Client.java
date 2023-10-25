@@ -67,8 +67,6 @@ public class Client
 				// Finally, make the call using the stub
 				
 				// OBTENGO UN ITERADOR, PARA PODER RECIBIR LOS PAQUETES DE RESPUESTA DEL SERVER
-				// YA QUE POR DE DABJO SE MANEJA HTTP/2
-				// Y HTTTP/2 PERMITE ENVIAR O RECIBIR VARIOS PAQUETES EN UNA MISMA CONEXION
 				Iterator<FtpResponseRead> responseIterator = stub
 					.withDeadlineAfter(deadlineMs, TimeUnit.MILLISECONDS)
 					.read(request);
