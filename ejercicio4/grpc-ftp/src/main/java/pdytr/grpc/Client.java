@@ -23,7 +23,7 @@ public class Client
 			(args.length != 4) ||
     		(!args[0].equals("read") && !args[0].equals("write")) ||
     		(Integer.parseInt(args[2]) < 0) ||
-    		(Integer.parseInt(args[3]) <= 0)
+    		(Integer.parseInt(args[3]) < 0)
 	
 		)
 		{
