@@ -4,12 +4,18 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 
+import java.util.Arrays;
+//ARCHIVOS
+import java.nio.file.Path;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.BufferedReader;
+import java.io.FileReader;
 
 import java.nio.charset.StandardCharsets;
 
@@ -46,6 +52,41 @@ public class FtpServiceImpl extends FtpServiceGrpc.FtpServiceImplBase {
 		else
 			return new File(resource.toURI());
 	}
+
+	private File createNewFileInResourceFolder(String fileName) throws IOException, URISyntaxException {
+        // Obtener la URL del directorio "resources"
+        URL resourceFolderURL = getClass().getClassLoader().getResource("resources");
+        if (resourceFolderURL == null) {
+            File resourcesDirectory = new File(getClass().getClassLoader().getResource("").toURI().getPath() + "resources");
+			if (!resourcesDirectory.exists()) {
+				if (!resourcesDirectory.mkdirs()) {
+					throw new IOException("No se pudo crear el directorio 'resources'");
+				}
+			}
+			resourceFolderURL = resourcesDirectory.toURI().toURL();
+
+        }
+
+        // Crear el nuevo archivo en el directorio "resources"
+        File newFile = new File(resourceFolderURL.toURI().getPath() + File.separator + fileName);
+        if (!newFile.createNewFile()) {
+            throw new IOException("No se pudo crear el nuevo archivo");
+        }
+
+        return newFile;
+    }
+
+	private void printFileContents(File file) throws IOException {
+    // Leer y imprimir el contenido completo del archivo
+		try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+			String line;
+			System.out.println("Contenido completo del archivo:");
+			while ((line = reader.readLine()) != null) {
+				System.out.println(line);
+			}
+		}
+	}
+
 
   @Override
   public void read(FtpServiceOuterClass.FtpRequestRead request,
@@ -117,54 +158,59 @@ public class FtpServiceImpl extends FtpServiceGrpc.FtpServiceImplBase {
 	@Override
   	public void write(FtpServiceOuterClass.WriteRequest request,
         StreamObserver<FtpServiceOuterClass.WriteResponse> responseObserver) {
-
-    // Obtén los datos del archivo desde el request
-        
+	
+	// Obtengo los datos del archivo desde el request
+		
         ByteString archivoDatos = request.getArchivoDatos();
-        String nombreArchivo = request.getNombreArchivo();
-        // Convierte el ByteString a un array de bytes
+		
+        //String nombreArchivo = request.getNombreArchivo();
+		String nombreArchivo = "arch.txt";
+		
         byte[] byteArray = archivoDatos.toByteArray();
 
-        // Imprime el array de bytes
-        System.out.println("Datos del ByteString:");
-        System.out.println(new String(byteArray, StandardCharsets.UTF_8));
-
+        // Imprimir los datos del ByteString
+        System.out.println("Datos que recibe el servidor: " + archivoDatos.toStringUtf8());
+    
         int cantLeidos = archivoDatos.size();
 
         // Genera una ruta de destino para guardar el archivo
-        String rutaCompleta = DESTINATION_FOLDER + nombreArchivo;
 
+		// ESCRIBO EL ARCHIVO EN /src/main/resources
+		try {
+            // Obtener el archivo desde la carpeta "resources"
+            File file = getFileFromResourceAsStream(nombreArchivo);
 
-      // Verifica si la carpeta de destino existe, de lo contrario, créala
-        File carpetaDestino = new File(DESTINATION_FOLDER);
-        if (!carpetaDestino.exists()) {
-            carpetaDestino.mkdirs();
-        }
+            if (file != null) {
+                System.out.println("Archivo encontrado: " + file.getAbsolutePath());
 
-        try {
-           // Verifica si el archivo ya existe
-            if (Files.exists(Paths.get(rutaCompleta))) {
-                // Si el archivo ya existe, abre un FileOutputStream en modo append (agregar al final)
-                FileOutputStream archivoDestino = new FileOutputStream(rutaCompleta, true);
-                archivoDatos.writeTo(archivoDestino);
-                archivoDestino.close();
-                System.out.println("Datos agregados al archivo existente: " + rutaCompleta);
+				System.out.println("Datos a escribir en el archivo: " + Arrays.toString(byteArray));
+
+                try (FileOutputStream fileOutputStream = new FileOutputStream(file, true)) {
+                	fileOutputStream.write(byteArray);
+					fileOutputStream.flush();
+					// Imprimir el contenido completo del archivo
+            		printFileContents(file);
+            	}
+				 
             } else {
-                // Si el archivo no existe, crea uno nuevo y guarda los datos
-                FileOutputStream archivoDestino = new FileOutputStream(rutaCompleta);
-                archivoDatos.writeTo(archivoDestino);
-                archivoDestino.close();
-                System.out.println("Archivo guardado en: " + rutaCompleta);
+                System.out.println("El archivo no existe. Creando uno nuevo...");
+
+                // Crear un nuevo archivo en la carpeta "resources"
+                File newFile = createNewFileInResourceFolder(nombreArchivo);
+
+                System.out.println("Nuevo archivo creado: " + newFile.getAbsolutePath());
+
+                // Realizar operaciones de lectura/escritura con el nuevo archivo aquí
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-            responseObserver.onError(e); // Maneja el error y notifica al cliente
-            return;
-        }
+
+			} catch (URISyntaxException | IOException e) {
+				e.printStackTrace();
+			}
+		
 
         // Crea una respuesta para notificar la cantidad de bytes leídos
         FtpServiceOuterClass.WriteResponse response = FtpServiceOuterClass.WriteResponse.newBuilder()
-            .setCantLeidos(cantLeidos)
+            .setCantEscritos(cantLeidos)
             .build();
 
     // Use responseObserver to send a single response back

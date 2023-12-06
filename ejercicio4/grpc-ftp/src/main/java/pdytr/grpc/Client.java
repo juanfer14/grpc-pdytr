@@ -5,10 +5,26 @@ import pdytr.grpc.FtpServiceOuterClass.FtpResponseRead;
 import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 
-import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
 import com.google.protobuf.ByteString;
+
+//ARCHIVOS
+import java.nio.file.Path;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.DataInputStream;
+import java.nio.charset.StandardCharsets;
+
+
+
+// ENLACES
+import java.net.URI;
+import java.net.URL;
+
+// EXCEPCIONES
+import java.io.IOException;
+import java.net.URISyntaxException;
+
 
 public class Client
 {
@@ -72,6 +88,7 @@ public class Client
 					.read(request);
 
 				// ITERO POR CADA UNA DE LAS RESPUESTAS QUE VAN LLEGANDOS
+				System.out.println("Esto es la respuesta: ");
 				while (responseIterator.hasNext()) {
 					FtpResponseRead response = responseIterator.next();
 					// Do something with the response object
@@ -81,51 +98,55 @@ public class Client
 			
 				break;
 			case "write":
-
+				
 				//leo las variables de la consulta
 				String arch = args[1];
-				int pos = Integer.parseInt(args[2]);
-				int cant_leer = Integer.parseInt(args[3]);
+				int cant_escribir = Integer.parseInt(args[2]);
+				byte[] buffer = args[3].getBytes();
 				
 				// Obtener los datos del archivo
 				byte[] datosDelArchivo = null;
 
 				//Lee el archivo del directorio local
 				try {
-					String rutaCompleta = ORIGIN_FOLDER + arch;
+					// SUPONEMOS, ALEGREMENTE QUE EL ARCHIVO EXISTE, Y ESTA EN SRC/MAIN/RESOURCES
+					File file = getFileFromResourceAsStream(arch);
 
-					File carpetaOrigen = new File(ORIGIN_FOLDER);
-					if (!carpetaOrigen.exists()) {
-						carpetaOrigen.mkdirs();
-					}
+					try (DataInputStream dataRead = new DataInputStream(new FileInputStream(file))) {
+						// Lee los datos del archivo y los almacena en el arreglo datosDelArchivo
+						datosDelArchivo = new byte[cant_escribir];
+						dataRead.read(datosDelArchivo);
+					}	
+				} catch (URISyntaxException e) {
 
-					File archivo = new File(carpetaOrigen+"\\"+arch);
-					datosDelArchivo = leerBytesDesdeArchivo(archivo, pos, cant_leer);
-
-				} catch (IOException e) {
-
-					System.out.println("El archivo ingresado no existe en "+ORIGIN_FOLDER); 
+					System.err.println("Error de lectura del archivo: " + e.getMessage()); 
 					return;
 				}
+				ByteString buffer_datos;
 
+				if (datosDelArchivo == null) {
+					buffer_datos = ByteString.EMPTY;
+				} else {
+            		buffer_datos = ByteString.copyFrom(datosDelArchivo);
+				}
+
+				// Imprimir los datos del ByteString
+				System.out.println("Datos leiodos desde el directorio local: " + buffer_datos.toStringUtf8()+"\n");
+    
 
 				//Genera la consulta a hacer al server
-
 				FtpServiceOuterClass.WriteRequest write_request =
 					FtpServiceOuterClass.WriteRequest.newBuilder()
-						.setArchivoDatos(ByteString.copyFrom(datosDelArchivo))
+						.setArchivoDatos(buffer_datos)
 						.setNombreArchivo(arch)
 						.build();
 
-				System.out.println("Enviando");
-				System.out.println(ByteString.copyFrom(datosDelArchivo));
-
 				//Envia los datos al request al server
-				FtpServiceOuterClass.WriteResponse cant_leidos = 
+				FtpServiceOuterClass.WriteResponse cant_escritos = 
 					stub.write(write_request);
 
 
-				System.out.println("La cantidad de bytes escritos leídos fue:"+cant_leidos); 
+				System.out.println("La cantidad de bytes escritos leídos fue:" + cant_escritos); 
 		
 		}
 				
@@ -141,6 +162,17 @@ public class Client
 
       }
     }
+
+	private static File getFileFromResourceAsStream(String fileName) throws URISyntaxException  {
+
+		URL resource = Client.class.getClassLoader().getResource(fileName);
+
+		if(resource == null)
+			return null;
+		else
+			return new File(resource.toURI());
+	}
+
 	// Función para leer los bytes desde un archivo dado una posición y cantidad de bytes
     private static byte[] leerBytesDesdeArchivo(File archivo, int pos, int cant_leer) throws IOException {
         byte[] datosDelArchivo = new byte[cant_leer];
