@@ -6,6 +6,7 @@ import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 
 import java.nio.file.Files;
+import java.nio.ByteBuffer;
 import com.google.protobuf.ByteString;
 
 //ARCHIVOS
@@ -102,7 +103,7 @@ public class Client
 				//leo las variables de la consulta
 				String arch = args[1];
 				int cant_escribir = Integer.parseInt(args[2]);
-				byte[] buffer = args[3].getBytes();
+				//byte[] buffer = args[3].getBytes();
 				
 				// Obtener los datos del archivo
 				byte[] datosDelArchivo = null;
@@ -132,21 +133,69 @@ public class Client
 
 				// Imprimir los datos del ByteString
 				System.out.println("Datos leiodos desde el directorio local: " + buffer_datos.toStringUtf8()+"\n");
-    
 
-				//Genera la consulta a hacer al server
-				FtpServiceOuterClass.WriteRequest write_request =
-					FtpServiceOuterClass.WriteRequest.newBuilder()
-						.setArchivoDatos(buffer_datos)
-						.setNombreArchivo(arch)
-						.build();
+				/*
+				size /()
+				100 -> 10 - 10 - 10 - 10 ... 10 - 10
 
-				//Envia los datos al request al server
-				FtpServiceOuterClass.WriteResponse cant_escritos = 
-					stub.write(write_request);
+				while()
+					transmitir;
+					
+				byteString.substring(start, end).copyTo(target)
+
+				
+				*/
+				int total_enviar =   buffer_datos.size();
+				int tamanio_bloque = 1024;
+				int bytes_faltantes =total_enviar;
+				int bytes_enviados = 0;
+				int start = 0;
+				int end = 0;
+
+				ByteBuffer paquete = null;
+
+				ByteString paqueteString;
 
 
-				System.out.println("La cantidad de bytes escritos leídos fue:" + cant_escritos); 
+				while (bytes_faltantes > 0 ){
+					//armo bloque a pasar
+					if (bytes_faltantes > 1024) {
+						end = start + 1024;
+					}else{
+						end = start + bytes_faltantes;
+					}
+					
+					buffer_datos.substring(start, end).copyTo(paquete);
+
+					if (paquete == null) {
+						paqueteString = ByteString.EMPTY;
+					} else {
+						paqueteString = ByteString.copyFrom(paquete);
+					}
+
+					//Genera la consulta a hacer al server
+					FtpServiceOuterClass.WriteRequest write_request =
+						FtpServiceOuterClass.WriteRequest.newBuilder()
+							.setArchivoDatos(paqueteString)
+							.setNombreArchivo(arch)
+							.build();
+
+					//Envia los datos al request al server
+					FtpServiceOuterClass.WriteResponse cant_escritos = 
+						stub.write(write_request);
+
+					start += cant_escritos.getCantEscritos();
+
+					bytes_enviados += cant_escritos.getCantEscritos();
+
+					bytes_faltantes -= cant_escritos.getCantEscritos();
+
+					System.out.println("La cantidad de bytes escritos leídos fue:" + cant_escritos.getCantEscritos());
+				}
+					
+
+
+				 
 		
 		}
 				

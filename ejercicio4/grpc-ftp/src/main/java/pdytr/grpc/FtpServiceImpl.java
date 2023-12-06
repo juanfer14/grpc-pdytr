@@ -55,25 +55,9 @@ public class FtpServiceImpl extends FtpServiceGrpc.FtpServiceImplBase {
 
 	private File createNewFileInResourceFolder(String fileName) throws IOException, URISyntaxException {
         // Obtener la URL del directorio "resources"
-        URL resourceFolderURL = getClass().getClassLoader().getResource("resources");
-        if (resourceFolderURL == null) {
-            File resourcesDirectory = new File(getClass().getClassLoader().getResource("").toURI().getPath() + "resources");
-			if (!resourcesDirectory.exists()) {
-				if (!resourcesDirectory.mkdirs()) {
-					throw new IOException("No se pudo crear el directorio 'resources'");
-				}
-			}
-			resourceFolderURL = resourcesDirectory.toURI().toURL();
+        URL resourceFolderURL = getClass().getClassLoader().getResource(fileName);
 
-        }
-
-        // Crear el nuevo archivo en el directorio "resources"
-        File newFile = new File(resourceFolderURL.toURI().getPath() + File.separator + fileName);
-        if (!newFile.createNewFile()) {
-            throw new IOException("No se pudo crear el nuevo archivo");
-        }
-
-        return newFile;
+        return new File(resourceFolderURL.toURI());
     }
 
 	private void printFileContents(File file) throws IOException {
@@ -163,7 +147,7 @@ public class FtpServiceImpl extends FtpServiceGrpc.FtpServiceImplBase {
 		
         ByteString archivoDatos = request.getArchivoDatos();
 		
-        String nombreArchivo = request.getNombreArchivo();
+        String nombreArchivo = request.getNombreArchivo()+"(Remoto)";
 		//String nombreArchivo = "arch.txt";
 		
         byte[] byteArray = archivoDatos.toByteArray();
@@ -180,28 +164,15 @@ public class FtpServiceImpl extends FtpServiceGrpc.FtpServiceImplBase {
             // Obtener el archivo desde la carpeta "resources"
             File file = getFileFromResourceAsStream(nombreArchivo);
 
-            if (file != null) {
-                System.out.println("Archivo encontrado: " + file.getAbsolutePath());
+            if (file == null) {
+               file = createNewFileInResourceFolder(nombreArchivo);
+            }
 
-				System.out.println("Datos a escribir en el archivo: " + Arrays.toString(byteArray));
-
-                try (FileOutputStream fileOutputStream = new FileOutputStream(file, true)) {
+			try (FileOutputStream fileOutputStream = new FileOutputStream(file, true)) {
                 	fileOutputStream.write(byteArray);
 					fileOutputStream.flush();
-					// Imprimir el contenido completo del archivo
-            		printFileContents(file);
-            	}
-				 
-            } else {
-                System.out.println("El archivo no existe. Creando uno nuevo...");
-
-                // Crear un nuevo archivo en la carpeta "resources"
-                File newFile = createNewFileInResourceFolder(nombreArchivo);
-
-                System.out.println("Nuevo archivo creado: " + newFile.getAbsolutePath());
-
-                // Realizar operaciones de lectura/escritura con el nuevo archivo aquí
             }
+				 
 
 			} catch (URISyntaxException | IOException e) {
 				e.printStackTrace();
