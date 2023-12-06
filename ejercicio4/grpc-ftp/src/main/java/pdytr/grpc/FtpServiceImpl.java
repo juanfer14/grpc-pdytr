@@ -163,8 +163,8 @@ public class FtpServiceImpl extends FtpServiceGrpc.FtpServiceImplBase {
 		
         ByteString archivoDatos = request.getArchivoDatos();
 		
-        //String nombreArchivo = request.getNombreArchivo();
-		String nombreArchivo = "arch.txt";
+        String nombreArchivo = request.getNombreArchivo();
+		//String nombreArchivo = "arch.txt";
 		
         byte[] byteArray = archivoDatos.toByteArray();
 
