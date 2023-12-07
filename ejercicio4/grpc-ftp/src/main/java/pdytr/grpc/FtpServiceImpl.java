@@ -50,17 +50,17 @@ public class FtpServiceImpl extends FtpServiceGrpc.FtpServiceImplBase {
 		if(resource == null){
 
 			try {
-				File archivo = new File(resource.toURI());
+				File archivo = new File(fileName);
 				archivo.createNewFile();
 				return archivo;
 			} catch (IOException e) {
             	System.out.println("Error al crear el archivo: " + e.getMessage());
         	}
 		}
-		else{
+		
+		return new File(resource.toURI());
+
 			
-		}
-			return new File(resource.toURI());
 	}
 
 	private File createNewFileInResourceFolder(String fileName) throws IOException, URISyntaxException {
