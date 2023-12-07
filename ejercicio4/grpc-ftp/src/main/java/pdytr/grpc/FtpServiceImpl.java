@@ -47,9 +47,19 @@ public class FtpServiceImpl extends FtpServiceGrpc.FtpServiceImplBase {
 	private File getFileFromResourceAsStream(String fileName) throws URISyntaxException  {
 
 		URL resource =  getClass().getClassLoader().getResource(fileName);
-		if(resource == null)
-			return null;
-		else
+		if(resource == null){
+
+			try {
+				File archivo = new File(resource.toURI());
+				archivo.createNewFile();
+				return archivo;
+			} catch (IOException e) {
+            	System.out.println("Error al crear el archivo: " + e.getMessage());
+        	}
+		}
+		else{
+			
+		}
 			return new File(resource.toURI());
 	}
 
@@ -147,15 +157,17 @@ public class FtpServiceImpl extends FtpServiceGrpc.FtpServiceImplBase {
 		
         ByteString archivoDatos = request.getArchivoDatos();
 		
-        String nombreArchivo = request.getNombreArchivo();
-		//String nombreArchivo = "arch.txt";
+        //String nombreArchivo = request.getNombreArchivo();
+		String nombreArchivo = "arch";
 		
         byte[] byteArray = archivoDatos.toByteArray();
 
         // Imprimir los datos del ByteString
-        System.out.println("Datos que recibe el servidor: " + archivoDatos.toStringUtf8());
+        // System.out.println("Datos que recibe el servidor: " + archivoDatos.toStringUtf8());
     
         int cantLeidos = archivoDatos.size();
+
+		System.out.println("El tamaño del paquete recibido es: "+archivoDatos.size());
 
         // Genera una ruta de destino para guardar el archivo
 
