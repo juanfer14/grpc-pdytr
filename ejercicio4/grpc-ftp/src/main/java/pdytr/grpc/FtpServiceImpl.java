@@ -171,8 +171,14 @@ public class FtpServiceImpl extends FtpServiceGrpc.FtpServiceImplBase {
 		
         ByteString archivoDatos = request.getArchivoDatos();
 		
-        //String nombreArchivo = request.getNombreArchivo();
-		String nombreArchivo = "arch";
+        String nombreArchivo = request.getNombreArchivo();
+		// String nombreArchivo = "audio3.mp3";
+
+		// SE CREA UN ARCHIVO, A MODO DE EJEMPLO, PARA TENER UN FEEDBACK DE LA LECTURA
+		int punto = nombreArchivo.indexOf(".");
+		String nombre = nombreArchivo.substring(0, punto);
+		String extension = nombreArchivo.substring(punto);
+		nombreArchivo = nombre + "-copia" + extension;
 		
         byte[] byteArray = archivoDatos.toByteArray();
 

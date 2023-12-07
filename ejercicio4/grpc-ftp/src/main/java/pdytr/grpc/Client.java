@@ -159,6 +159,7 @@ public class Client
 				
 				// Obtener los datos del archivo
 				byte[] datosDelArchivo = null;
+				int bytesLeidos;
 
 				//Lee el archivo del directorio local
 				try {
@@ -184,9 +185,7 @@ public class Client
             		buffer_datos = ByteString.copyFrom(datosDelArchivo);
 				}
 
-				//Imprimir los datos del ByteString
-				System.out.println("Datos leiodos desde el directorio local: " + buffer_datos.toStringUtf8()+"\n");
-
+				
 				int total_enviar =   buffer_datos.size();
 				int tamanio_bloque = 1024;
 				int bytes_faltantes =total_enviar;
@@ -195,6 +194,10 @@ public class Client
 				int end = 0;
 
 				ByteString paqueteString;
+				
+				//Imprimir los datos del ByteString
+				System.out.println("Cantidad de datos a enviar: "+datosDelArchivo.length+" bytes");
+				//System.out.println("Datos leiodos desde el directorio local: " + buffer_datos.toStringUtf8()+"\n");
 				
 
 
@@ -206,6 +209,8 @@ public class Client
 						end = start + bytes_faltantes;
 					}
 					paqueteString = buffer_datos.substring(start, end);
+
+					// System.out.println("   # Tamaño del paquete a enviar: "+paqueteString.size()+ " bytes ");
 
 					//Genera la consulta a hacer al server
 					FtpServiceOuterClass.WriteRequest write_request =
@@ -225,7 +230,7 @@ public class Client
 
 					bytes_faltantes -= cant_escritos.getCantEscritos();
 
-					System.out.println("La cantidad de bytes escritos leídos fue:" + cant_escritos.getCantEscritos());
+					System.out.println("La cantidad de bytes leídos en local:" + cant_escritos.getCantEscritos());
 				}
 					
 

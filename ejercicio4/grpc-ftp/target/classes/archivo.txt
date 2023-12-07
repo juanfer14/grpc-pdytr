@@ -1,4 +1,165 @@
 AAAAAAAAAAAAAAAAAAAAAAAAAA
 BBBBBBBBBBBBBBBBBBBBBBBBBB
 VVVVVVVVVVVVVVVVVVVVVVVVV
-CCCCCCCCCCCCCCCCCCCCCCCCCCC.
+CCCCCCCCCCCCCCCCCCCCCCCCCCC.Programación Distribuida y Tiempo Real 
+Facultad de Informática - Universidad Nacional de La Plata 
+Prof. Fernando G. Tinetti 
+Práctica 4 
+
+Integrantes
+
+Juan Fernando Campodonico
+
+Luis Valentin Domé
+
+
+
+
+
+
+
+
+
+1) Programar un agente para que periódicamente recorra una secuencia de computadoras  y reporte al lugar de origen: 
+a) El tiempo total del recorrido para recolectar la información. 
+b) La carga de procesamiento de cada una de ellas. 
+c) La cantidad de memoria total disponible. 
+d) Los nombres de las computadoras. 
+Comente la relación entre este posible estado del sistema distribuido y el estado que se  obtendría implementando el algoritmo de instantánea. 
+
+Descripción de la solución
+Para esta solución, se reciben como argumento los containers por los cuales debe ir pasando el agente para procesar la información pedida.
+Primero el agente verifica que haya al menos un argumento, y si hay más de una, se inicializan todas las variables utilizadas y se agregan todos los containers que se pasaron como argumento.
+También se agrega al final de la lista de containers a procesar, el container desde donde se sale, para poder informar la información obtenida en el lugar de origen y por motivos de una correcta finalización del algoritmo.
+Luego de realizar esto, se empieza a tomar el tiempo total en milisegundos, que llevará todo el procesamiento en cada unos de los containers y se realiza el movimiento a cada uno de los containers con un índice que indica el container que actualmente se está procesando .
+Una vez hecho el movimiento, se ejecuta el “afterMove()” y se chequea que el container actualmente analizado no sea el último, si no es así, se pasa a tomar los datos solicitados y se pasa al siguiente.
+Para la toma de datos, se utilizó lo siguiente:
+Para la carga de procesamiento, se utilizó la interfaz “com.sun.management.OperatingSystemMXBean” la cual permite obtener información del sistema en la cual se está corriendo la JVM. 
+Con esta instancia se obtiene la carga que tiene la CPU en todo el sistema y como este valor viene reflejado en un intervalo de [0.0, 1.0] se  lo multiplicó por 100% para obtener el porcentaje de uso.
+Para la cantidad de memoria disponible, se utilizó la clase “java.lang.Runtime”, que brinda información del entorno en donde está ejecutando un proceso Java
+Para el nombre de la computadora, se solicitó a la instancia de here(), el nombre que actualmente tiene.
+Cuando se hayan procesado todos los containers y se vuelva al lugar de partida,  se termina de tomar el tiempo y se calcula cuál fue el total de memoria disponible y se pasa a realizar la impresión de los resultados que se recolectaron.
+En todos los casos donde se migre a un nuevo container, se verifica si se ha producido alguna excepción, en ese caso se informa cuál fue el motivo.
+
+Descripción del código bash utilizado
+Se creó una carpeta “/log” con el archivo “out.txt” donde se guardan todos los resultados de la salida estándar; al comienzo de la ejecución se vacía el contenido de este archivo.
+Siguiente a  eso, se ejecuta la interfaz gráfica de Jade y se crean cuatro containers “c0”, “c1”, “c2” y “c3”.
+En cada uno de ellos se redirige la salida al archivo indicado anteriormente y se los ejecuta en background, realizando una espera de 5 milisegundos.
+En el container “c0” es donde se empezará a ejecutar el agente con nombre “mol” y se le pasa como argumento la lista de containers que debe procesar el agente, en la clase donde se ejecute.
+Por último, se realiza un wait, para esperar a que todos los procesos en background terminen y una vez finalizado, se matan todos los procesos que tengan nombre “java”
+
+¿Qué es el algoritmo de instantánea?
+El algoritmo de Chandy-Lamport, también conocido como el algoritmo de instantánea global, es un algoritmo utilizado en sistemas distribuidos para tomar una "instantánea" global o "foto" del estado del sistema en un momento dado. Este algoritmo fue propuesto por K. M. Chandy y Leslie Lamport en 1985.
+
+El objetivo principal del algoritmo de Chandy-Lamport es capturar una instantánea consistente de los estados locales de los procesos y los canales de comunicación en un sistema distribuido sin detener los procesos. Esto es útil para analizar el estado del sistema en un punto particular en el tiempo y para realizar tareas como la detección de deadlock.
+
+A continuación, se explica cómo funciona el algoritmo:
+
+
+
+
+1. Inicio de la instantánea: Un proceso o un evento externo inicia la toma de instantánea en el sistema. Este evento se denomina "marcador" o "snap".
+
+2. Registro del estado local: Cada proceso en el sistema registra su estado local, que puede incluir información sobre sus variables locales y cualquier mensaje enviado o recibido pero no procesado.
+
+
+3. Marcado de canales: Cada canal de comunicación entre procesos es marcado para indicar que la instantánea ha pasado por ese canal. Esto se hace para garantizar la consistencia de la instantánea global.
+
+4. Propagación del marcador: El marcador se envía a través de los canales a otros procesos. Cuando un proceso recibe un marcador, registra su estado local y marca sus canales de comunicación salientes.
+
+
+5. Recepción del marcador: Cuando un proceso recibe un marcador, registra su estado local y marca sus canales de comunicación salientes. Además, si aún no ha registrado su propio estado local, lo hace.
+
+6. Finalización de la instantánea: La instantánea se considera completa cuando todos los procesos han registrado su estado local y todos los canales han sido marcados. En este punto, se tiene una imagen consistente del estado global del sistema en el momento de la instantánea.
+
+
+El algoritmo de Chandy-Lamport garantiza la consistencia de la instantánea global sin requerir una sincronización global de los procesos. Esto lo hace útil en entornos distribuidos donde la sincronización perfecta puede ser difícil de lograr. Además, el algoritmo no requiere la detención de los procesos, lo que permite que el sistema continúe funcionando normalmente durante la toma de instantánea.
+
+
+Relación con el algoritmo de instantánea
+En este algoritmo, solamente se tiene un proceso que va migrando entre las diferentes computadoras y va registrando los datos que se requieren.
+En el algoritmo de instantánea, se tendrán N procesos por las N máquinas que haya, donde cada uno tendría su propio estado y se compartirá a través de un canal unidireccional (de ida y vuelta) hacia las demás máquinas para poder recibir el estado de las demás, y tener un estado global.
+Por lo tanto, la relación con el algoritmo de instantánea, está en la forma en que va avanzando el estado de procesamiento global, teniendo ambos un estado inicial (sin datos) que va progresando a medida que avanza el algoritmo en cada una de las máquinas donde se realice el procesamiento.
+
+2) Programe un agente para que calcule la suma de todos los números almacenados en un  archivo de una computadora que se le pasa como parámetro. Comente cómo se haría lo mismo  con una aplicación cliente/servidor. Comente qué pasaría si hubiera otros sitios con archivos  que deben ser procesados de manera similar. 
+¿Cómo programaría el agente?
+El agente que realice esta tarea funcionaría de la siguiente forma, este agente comienza desde la máquina que quiere obtener el resultado de la suma de los números en un archivo. Una vez que comience el agente, va a recibir como parámetro el nombre del archivo y el container donde está ubicado el archivo; el agente se mueve a este container, realiza el cálculo, y vuelve al container origen con el resultado obtenido, finalmente guarda el resultado y termina su ejecución.
+
+Representación del proceso
+¿Cómo resolvería el problema con una aplicación cliente/servidor?
+Suponiendo que el problema es calcular el valor total de un conjunto de números de un archivo y que este archivo se encuentra almacenado en el servidor, los pasos para resolver este problema serían:
+1- El cliente y el servidor establecen una conexión para poder comunicarse.
+2- El cliente envía una solicitud al servidor con el nombre del archivo del cual quiere obtener el resultado.
+3- Una vez el servidor haya recibido el pedido, este calcula el total de los elementos del archivo que se eligió.
+4- Finalmente, cuando el servidor completa el cálculo, envía el resultado obtenido al cliente.
+
+
+
+
+Representación del pedido
+
+¿Qué pasaría si hubiera otros sitios en donde se tienen que procesar archivos de forma similar?
+En este caso se debe proceder de la misma forma pero realizando múltiples peticiones desde el cliente, a diferentes servidores. Luego cada uno de los servidores realizaría el procedimiento que se pide y devolvería cada uno su respuesta.
+
+Representación del pedido
+
+¿Cuáles son las diferencias entre utilizar una solución y otra?
+Viendo estas dos soluciones a los problemas se llega a la conclusión que de que la forma de resolver los problemas es bastante similar, en cuanto a la cantidad de procesamiento que hay que realizar y al balance de carga de la solución, pero también se llega a la conclusión de que la segunda solución, en donde se envían solicitudes y respuestas entre el servidor y el cliente es más eficiente en cuanto a la utilización de la capacidad de la red, puesto que en la primer solución se está enviando un proceso completo desde un container a otro, con todo lo que eso implica, código fuente, espacio de direcciones, registros, etc. mientras que en la segunda solución solamente se está enviando un paquete de red como lo puede ser una consulta HTTP, que en general pesa mucho menos un proceso. 
+Como conclusión para este problema en específico se optaría por la segunda solución debido al overhead que se podría generar en la red.
+
+3) Defina e implemente con agentes un sistema de archivos distribuido similar al de las  prácticas anteriores. 
+a.- Debería tener como mínimo la misma funcionalidad, es decir las operaciones (definiciones copiadas aquí de la práctica anterior): 
+Leer: dado un nombre de archivo, una posición y una cantidad de bytes a leer, retorna 
+1)  la cantidad de bytes del archivo pedida a partir de la posición dada o en caso de haber  menos bytes, se retornan los bytes que haya y 
+2) la cantidad de bytes que efectivamente  se retornan leídos. 
+Escribir: dado un nombre de archivo, una cantidad de bytes determinada, y un buffer a  partir del cual están los datos , se escriben los datos en el archivo dado. Si el archivo existe,  los datos se agregan al final, si el archivo no existe, se crea y se le escriben los datos. En  todos los casos se retorna la cantidad de bytes escritos. 
+
+Descripción de la solución
+Para este problema, se reciben por argumentos los datos solicitados tanto en el read como en el write, debido a esto, se verifica que estos argumentos sean válidos y que correspondan a la solicitud de operaciones disponibles, en cualquier otro caso, se levanta una excepción indicando el motivo por el cual surgió, los cuales pueden ser por cantidad de argumentos u operación inválida.
+Luego de verificar que los argumentos sean válidos, si la operación solicitada es un write, se deberá leer del archivo solicitado en el cliente, mientras que en el read, primero el agente se debe mover al sistema de archivos distribuido para poder leer el archivo.
+En esta solución, para la operación de write, asumimos que el nombre de archivo a escribir ya lo dispone el cliente, y por lo tanto solamente realiza escrituras del archivo que ya posee para actualizarlo en el sistema de archivos distribuido.
+Una vez que el agente, se mueve al sistema de archivos distribuidos, en el “afterMove()”, se verifica en qué container está, si es en el del cliente o en el del sistema de archivos distribuidos, debido a que esto determina la operación que se debe realizar. 
+Para ser más preciso, si la operación es un read, el agente lo primero que hará es ir al container del sistema del archivo distribuido y como la operación es un read y no está en el container de partida, se realizará un read del archivo solicitado. Cuando este agente, termine de leer lo que necesita, se moverá devuelta al container del cliente  y luego de realizar el movimiento, deberá realizar un write de los datos que ha leído en el container del sistema de archivos distribuidos, y una vez que termine, volverá a moverse devuelta allí, repitiendo las mismas acciones que se han descripto.
+Para el write, sucede lo contrario, el agente antes de realizar el primer movimiento, realizar un read y se mueve al container del sistema de archivos distribuidos, cuando llegue allí y verifique que la operación es un write y está en este container, realizará un write de los datos que dispone. Una vez escritos estos datos, volverá al container de partida y hara un read, de los datos que faltan.
+En todos los casos, al final del “afterMove()” se verifica si la operación ha finalizado, que en otros términos significa que ya no se disponen de más datos para leer, y en ese momento el agente no realiza más operaciones.
+Lo que se hizo para cada una de las operaciones, fue lo siguiente:
+
+read: 
+Se instancia un File segun la ubicacion en donde este y el nombre del archivo,  se verifica con esta tipo de dato, que el archivo exista y no sea un directorio, en otro caso se levanta una excepción
+Se instala un FileOutputStream a partir del File para poder realizar la lectura de los bytes y se realiza un “skip()”, el cual realiza un offset o desplazamiento en dónde debe empezar a leerse el archivo. 
+Luego se evalúa de acuerdo a con el mínimo, la cantidad de bytes que deben leerse, según lo solicitado por argumento o la cantidad por default que puede leerse, que en este caso es  de 512 bytes o cuantos bytes faltan para poder terminar de leer el stream del archivo. Por ejemplo:
+Si me solicitan 10 bytes, en la posición 0, y faltan leer desde esa posicion 100 bytes, entonces, solamente se leen 10 bytes.
+Si la cantidad solicitada es 100 bytes, y desde la posición pedida, solo puedo leer 50 bytes, entonces solamente se leen 50 bytes.
+Si la cantidad solicitada es 1000 bytes y desde la posición pedida faltan leer 10.000 bytes, entonces solamente se leen 512 bytes.
+Al terminar de evaluar cuánto debe leerse, se verifica si ya no hay más datos para leer, según lo pedido o si ya no se disponen más datos para leer del stream, en cualquiera de estos dos casos, no se lee más y se marca en un booleano que se terminó la operación solicitada.
+En el caso de haber datos para leer, se realiza la lectura y al terminar se actualiza la posición desde donde debe empezar a leerse en la próxima lectura y cuantos bytes han sido leídos, luego se cierra el FileOutputStream.
+En en el caso de haber problemas de lectura, se maneja la excepción con un try-catch
+write: 
+Se instancia un File segun la ubicación en donde este y el nombre de archivo pasado, y en el caso de no existir el archivo, se lo crea con “createNewFile()”, en el caso de que no exista, no realiza nada.
+Se instancia un FileOutputStream en modo append, para poder escribir los datos al final del archivo, si es que este ya existe.
+Se escriben los datos previamente leídos en el read, segun la cantidad de bytes que haya devuelto la operación de lectura y al finalizar se cierra el FileOutputStream.
+En en el caso de haber problemas de escritura, se maneja la excepción con un try-catch
+
+Descripción del código bash utilizado
+Se creó una carpeta “/log” con el archivo “out.txt” donde se guardan todos los resultados de la salida estándar; al comienzo de la ejecución se vacía el contenido de este archivo.
+Siguiente a  eso, se ejecuta la interfaz gráfica de Jade y se crean dos containers “c0” y “c1”, donde “c1” es el container del sistema de archivos distribuido y “c0” es el container local del agente. 
+En cada uno de ellos se redirige la salida al archivo indicado anteriormente y se los ejecuta en background, realizando una espera de 5 milisegundos.
+En el container “c0” es donde se empezará a ejecutar el agente con nombre “mol” y se le pasan los argumentos, con los datos de la operación que debe realizar el agente en la clase que se ejecuta.
+Por último, se realiza un wait, para esperar a que todos los procesos en background terminen y una vez finalizado, se matan todos los procesos que tengan nombre “java”.
+
+
+
+
+b- Implemente un agente que copie un archivo de otro sitio del sistema distribuido en el  sistema de archivos local y genere una copia del mismo archivo en el sitio donde está  originalmente. Compare esta solución con la de los sistemas cliente/servidor de las prácticas anteriores.
+Descripción de la solución:
+Para poder realizar este ejercicio se partió desde la solución explicada en el inciso anterior, la solución implica agregar una nueva operación a la ya realizada llamada “copy” que será la encargada de traer el archivo desde el container destino hacia el container origen y dado que esta operación es exactamente lo que hace la operación “read” se decidió reemplazar la misma y además agregar la funcionalidad necesaria para poder generar una copia del archivo que se desea leer desde el sitio remoto.
+Los argumentos necesarios para esta operación solo son el nombre de la operación, el container destino que contiene el archivo que se desea leer y el nombre del mismo. Como precondición el archivo que se quiere leer debe estar en una carpeta llamada “backup”.
+Una vez se realiza el chequeo  de los argumentos el agente se mueve al container destino por primera vez y procede a generar una copia del archivo, la copia que se genere tendrá el nombre original del archivo más la fecha y hora del momento en en el que realizó la copia.
+Cuando se termina de crear la copia, el agente funciona igual que si se hubiera realizado la operación “read”, con posición inicial cero y con cantidad de bytes igual al tamaño del archivo.
+
+Ahora en cuanto a la comparación entre este tipo de solución y una solución para sistemas del tipo cliente/servidor utilizando sockets, se destacan los siguientes puntos:
+Antes que nada queremos comparar la simplicidad de programación, creemos que la gran cantidad de documentación y material didáctico que hay en internet, permiten entender de una forma clara, cómo funciona un sistema del tipo cliente/servidor, puesto que para resolver el mismo tipo de problema, nos encontramos con una gran barrera al momento de desarrollar una solución utilizando agentes con movilidad de código.
+Otra consideración a tener en cuenta entre estas soluciones es la cantidad de datos que se transfieren, mientras que utilizando agentes es necesario además de transferir los archivos en N cantidad de paquetes, para la solución que emplea movilidad de código es necesario también transferir el código del proceso, registros, espacio de direcciones, etc. lo que es una carga extra en la red, lo que podría generar un problema si es que se tienen múltiples agentes realizando esta tarea en simultáneo.
+La otra característica a evaluar es la preparación del ambiente para utilizar este tipo de herramientas, ya que tanto el destino y el origen deben estar preparados para poder procesar el código, mientras que para los sistemas cliente/servidor es posible desarrollar una solución de este tipo solo instalando el código de máquina en el cliente y en el servidor.
+Bibliografía:
+Sistemas distribuidos, Conceptos y diseños, 3ra edicion (Colouris,Dollimore,Kindberg)
