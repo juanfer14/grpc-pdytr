@@ -74,11 +74,14 @@ public class Client
 
 		switch(args[0]){
 			case "read":
+				int offset = Integer.parseInt(args[2]);
+				int bytes_leer = Integer.parseInt(args[3]);
+
 				FtpServiceOuterClass.FtpRequestRead request =
 					FtpServiceOuterClass.FtpRequestRead.newBuilder()
 		  			.setName(args[1])
-					.setPosition(Integer.parseInt(args[2]))
-					.setBytes(Integer.parseInt(args[3]))
+					.setPosition(offset)
+					.setBytes(bytes_leer)
 		  			.build();
 
 				// Finally, make the call using the stub
@@ -89,11 +92,13 @@ public class Client
 					.read(request);
 
 				// ITERO POR CADA UNA DE LAS RESPUESTAS QUE VAN LLEGANDOS
-				System.out.println("Esto es la respuesta: ");
+				System.out.println("Esta es la respuesta: ");
+				int i = 0;
 				while (responseIterator.hasNext()) {
+					System.out.println("ITERACION " + (++i));
 					FtpResponseRead response = responseIterator.next();
 					// Do something with the response object
-					System.out.println(response);
+					//System.out.println(response);
 				}
 
 			

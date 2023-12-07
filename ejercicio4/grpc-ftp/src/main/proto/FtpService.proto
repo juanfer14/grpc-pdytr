@@ -32,7 +32,3 @@ service FtpService {
    rpc read(FtpRequestRead) returns (stream FtpResponseRead);
    rpc write(WriteRequest) returns (WriteResponse);
 }
-
-
-
-
