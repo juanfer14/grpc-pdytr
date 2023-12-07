@@ -108,7 +108,7 @@ public class Client
 				//leo las variables de la consulta
 				String arch = args[1];
 				int cant_escribir = Integer.parseInt(args[2]);
-				//byte[] buffer = args[3].getBytes();
+				byte[] buffer = args[3].getBytes();
 				
 				// Obtener los datos del archivo
 				byte[] datosDelArchivo = null;
@@ -128,6 +128,7 @@ public class Client
 					System.err.println("Error de lectura del archivo: " + e.getMessage()); 
 					return;
 				}
+
 				ByteString buffer_datos;
 
 				if (datosDelArchivo == null) {
@@ -136,20 +137,9 @@ public class Client
             		buffer_datos = ByteString.copyFrom(datosDelArchivo);
 				}
 
-				// Imprimir los datos del ByteString
+				//Imprimir los datos del ByteString
 				System.out.println("Datos leiodos desde el directorio local: " + buffer_datos.toStringUtf8()+"\n");
 
-				/*
-				size /()
-				100 -> 10 - 10 - 10 - 10 ... 10 - 10
-
-				while()
-					transmitir;
-					
-				byteString.substring(start, end).copyTo(target)
-
-				
-				*/
 				int total_enviar =   buffer_datos.size();
 				int tamanio_bloque = 1024;
 				int bytes_faltantes =total_enviar;
@@ -157,9 +147,8 @@ public class Client
 				int start = 0;
 				int end = 0;
 
-				ByteBuffer paquete = null;
-
 				ByteString paqueteString;
+				
 
 
 				while (bytes_faltantes > 0 ){
@@ -169,14 +158,7 @@ public class Client
 					}else{
 						end = start + bytes_faltantes;
 					}
-					
-					buffer_datos.substring(start, end).copyTo(paquete);
-
-					if (paquete == null) {
-						paqueteString = ByteString.EMPTY;
-					} else {
-						paqueteString = ByteString.copyFrom(paquete);
-					}
+					paqueteString = buffer_datos.substring(start, end);
 
 					//Genera la consulta a hacer al server
 					FtpServiceOuterClass.WriteRequest write_request =
@@ -185,6 +167,7 @@ public class Client
 							.setNombreArchivo(arch)
 							.build();
 
+					System.out.println("Enviando...");
 					//Envia los datos al request al server
 					FtpServiceOuterClass.WriteResponse cant_escritos = 
 						stub.write(write_request);
@@ -210,7 +193,7 @@ public class Client
 		
       }
       catch (Exception e){
-		System.err.println("Se produjo una excepcion: " + e.getMessage());
+		System.err.println("Se produjo una excepcion: en el cliete" + e.getMessage());
 		System.err.println("Se procede a cerrar el canal...");
 		channel.shutdownNow().awaitTermination(5, TimeUnit.SECONDS);
 
