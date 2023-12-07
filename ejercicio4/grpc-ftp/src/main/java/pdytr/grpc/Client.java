@@ -50,15 +50,13 @@ public class Client
      
 		System.out.println(args[0]);
 		if (
-			(args.length != 4) ||
-    		(!args[0].equals("read") && !args[0].equals("write")) ||
-    		(Integer.parseInt(args[2]) < 0) ||
-    		(Integer.parseInt(args[3]) < 0)
+			(args.length != 2) ||
+    		(!args[0].equals("read") && !args[0].equals("write"))
 	
 		)
 		{
 			System.out.println("4 arguments needed: read name position size_bytes_read");
-			System.out.println("4 arguments needed: write name size_bytes_write buffer");
+			System.out.println("2 arguments needed: write name ");
 			System.exit(1);
 		}
 
@@ -154,8 +152,7 @@ public class Client
 				
 				//leo las variables de la consulta
 				String arch = args[1];
-				int cant_escribir = Integer.parseInt(args[2]);
-				byte[] buffer = args[3].getBytes();
+				int cant_escribir = 0;
 				
 				// Obtener los datos del archivo
 				byte[] datosDelArchivo = null;
@@ -168,6 +165,7 @@ public class Client
 
 					try (DataInputStream dataRead = new DataInputStream(new FileInputStream(file))) {
 						// Lee los datos del archivo y los almacena en el arreglo datosDelArchivo
+						cant_escribir = (int) file.length();
 						datosDelArchivo = new byte[cant_escribir];
 						dataRead.read(datosDelArchivo);
 					}	
@@ -186,8 +184,10 @@ public class Client
 				}
 
 				
+
+				
 				int total_enviar =   buffer_datos.size();
-				int tamanio_bloque = 1024;
+				int tamanio_bloque = 4096;
 				int bytes_faltantes =total_enviar;
 				int bytes_enviados = 0;
 				int start = 0;
@@ -203,8 +203,8 @@ public class Client
 
 				while (bytes_faltantes > 0 ){
 					//armo bloque a pasar
-					if (bytes_faltantes > 1024) {
-						end = start + 1024;
+					if (bytes_faltantes > tamanio_bloque) {
+						end = start + tamanio_bloque;
 					}else{
 						end = start + bytes_faltantes;
 					}
