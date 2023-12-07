@@ -16,7 +16,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.DataInputStream;
 import java.nio.charset.StandardCharsets;
-
+import java.io.FileNotFoundException;
 
 
 // ENLACES
@@ -163,6 +163,11 @@ public class Client
 					// SUPONEMOS, ALEGREMENTE QUE EL ARCHIVO EXISTE, Y ESTA EN SRC/MAIN/RESOURCES
 					File file = getFileFromResourceAsStream(arch);
 
+					if (file == null) {
+						throw new FileNotFoundException("Archivo no encontrado: " + arch);
+					}
+
+
 					try (DataInputStream dataRead = new DataInputStream(new FileInputStream(file))) {
 						// Lee los datos del archivo y los almacena en el arreglo datosDelArchivo
 						cant_escribir = (int) file.length();
@@ -182,9 +187,6 @@ public class Client
 				} else {
             		buffer_datos = ByteString.copyFrom(datosDelArchivo);
 				}
-
-				
-
 				
 				int total_enviar =   buffer_datos.size();
 				int tamanio_bloque = 4096;
@@ -245,7 +247,7 @@ public class Client
 		
       }
       catch (Exception e){
-		System.err.println("Se produjo una excepcion: en el cliete" + e.getMessage());
+		System.err.println("Se produjo una excepcion: en el cliete " + e.getMessage());
 		System.err.println("Se procede a cerrar el canal...");
 		channel.shutdownNow().awaitTermination(5, TimeUnit.SECONDS);
 
