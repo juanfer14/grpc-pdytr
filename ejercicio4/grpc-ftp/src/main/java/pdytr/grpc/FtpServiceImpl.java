@@ -147,7 +147,7 @@ public class FtpServiceImpl extends FtpServiceGrpc.FtpServiceImplBase {
 		
         ByteString archivoDatos = request.getArchivoDatos();
 		
-        String nombreArchivo = request.getNombreArchivo()+"(Remoto)";
+        String nombreArchivo = request.getNombreArchivo();
 		//String nombreArchivo = "arch.txt";
 		
         byte[] byteArray = archivoDatos.toByteArray();
@@ -164,10 +164,6 @@ public class FtpServiceImpl extends FtpServiceGrpc.FtpServiceImplBase {
             // Obtener el archivo desde la carpeta "resources"
             File file = getFileFromResourceAsStream(nombreArchivo);
 
-            if (file == null) {
-               file = createNewFileInResourceFolder(nombreArchivo);
-            }
-
 			try (FileOutputStream fileOutputStream = new FileOutputStream(file, true)) {
                 	fileOutputStream.write(byteArray);
 					fileOutputStream.flush();
@@ -175,6 +171,7 @@ public class FtpServiceImpl extends FtpServiceGrpc.FtpServiceImplBase {
 				 
 
 			} catch (URISyntaxException | IOException e) {
+				System.out.println("Ocurrió un error en el server...\n\n");
 				e.printStackTrace();
 			}
 		
