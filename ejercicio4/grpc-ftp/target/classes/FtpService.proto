@@ -29,10 +29,6 @@ message WriteResponse {
 service FtpService {
   // Define a RPC operation
    //rpc greeting(HelloRequest) returns (stream HelloResponse);
-   rpc read(FtpRequestRead) returns (stream FtpResponseRead);
+   rpc read(FtpRequestRead) returns (FtpResponseRead);
    rpc write(WriteRequest) returns (WriteResponse);
 }
-
-
-
-

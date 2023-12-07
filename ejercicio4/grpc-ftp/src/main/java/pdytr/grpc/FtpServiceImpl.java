@@ -33,6 +33,12 @@ import com.google.protobuf.ByteString;
 
 public class FtpServiceImpl extends FtpServiceGrpc.FtpServiceImplBase {
 
+	
+
+	private static final String DESTINATION_FOLDER = "C:\\Users\\usuario\\Desktop\\Filesystem\\"; // Ruta de destino donde se guardarán los archivos
+
+	private static final int tam_bloque = 1024;
+
 	// FUNCION SACADA DE https://mkyong.com/java/java-read-a-file-from-resources-folder/
 	// PARA OBTENER EL ARCHIVO DESDE /src/main/resources
 	
@@ -41,9 +47,6 @@ public class FtpServiceImpl extends FtpServiceGrpc.FtpServiceImplBase {
     //		(SIRVE PARA PODER CREAR UN ARCHIVO SI NO EXISTE)
 	// 	-EN CASO DE EXISTIR, DEVUELVE EL FILE
 	//  -SI EL ARCHIVO NO EXISTE Y SE QUIERE LEER, SE DEBE MANEJAR LA EXCEPCION
-
-	private static final String DESTINATION_FOLDER = "C:\\Users\\usuario\\Desktop\\Filesystem\\"; // Ruta de destino donde se guardarán los archivos
-
 	private File getFileFromResourceAsStream(String fileName) throws URISyntaxException  {
 
 		URL resource =  getClass().getClassLoader().getResource(fileName);
@@ -111,12 +114,23 @@ public class FtpServiceImpl extends FtpServiceGrpc.FtpServiceImplBase {
 		// LO CONVIERTO EN UN DATAINPUTSTREAM
 		DataInputStream dataRead = new DataInputStream(new FileInputStream(file));
 
+		dataRead.skipBytes((int)request.getPosition());
+
+
+		int bytes_leer = (int)request.getBytes();
+
+
+		if(bytes_leer > tam_bloque)
+			bytes_leer = tam_bloque;
+
+		System.out.println("BYTES A LEER " + bytes_leer);
+
 		// ASIGNO AL BUFFER LA CANTIDAD DE DATOS NECESARIOS
-		buffer = new byte[(int)request.getBytes()];
+		buffer = new byte[bytes_leer];
 
 		// LEO EL ARCHIVO DESDE LA POSICION INDICADA Y LA CANTIDAD INDICADA, Y GUARDO
 		// LA CANTIDAD DE BYTES QUE EFECTIVAMENTE SE LEYERON
-		int readed = dataRead.read(buffer, (int)request.getPosition(), (int) request.getBytes());
+		int readed = dataRead.read(buffer);
 		
 		// CIERRO EL DATAINPUTSTREAM
 		dataRead.close();	
