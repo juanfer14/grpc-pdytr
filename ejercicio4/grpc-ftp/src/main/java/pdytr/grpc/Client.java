@@ -13,6 +13,7 @@ import com.google.protobuf.ByteString;
 import java.nio.file.Path;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.DataInputStream;
 import java.nio.charset.StandardCharsets;
 
@@ -31,6 +32,18 @@ public class Client
 {
     private static final String ORIGIN_FOLDER = "C:\\Users\\usuario\\Desktop\\Origen\\"; // Ruta de origen donde se leeran los archivos
 
+	private static URL getFileResources(String fileName){
+		return Client.class.getClassLoader().getResource(fileName);
+	}
+	
+	private static File getFileFromResourceAsStream(String fileName) throws URISyntaxException {
+		URL resource = getFileResources(fileName);
+		
+		if (resource == null)
+			return null;
+		else
+			return new File(resource.toURI());
+	}
 
     public static void main( String[] args ) throws Exception
     {
@@ -74,32 +87,66 @@ public class Client
 
 		switch(args[0]){
 			case "read":
+				// NOMBRE DEL ARCHIVO
+				String nombreArchivo = args[1];
+				// POSICION DESDE SE COMIENZA A LEER
 				int offset = Integer.parseInt(args[2]);
+				// BYTES QUE SE DEBN LEER
 				int bytes_leer = Integer.parseInt(args[3]);
 
-				FtpServiceOuterClass.FtpRequestRead request =
-					FtpServiceOuterClass.FtpRequestRead.newBuilder()
-		  			.setName(args[1])
-					.setPosition(offset)
-					.setBytes(bytes_leer)
-		  			.build();
+				// SE CREA UN ARCHIVO, A MODO DE EJEMPLO, PARA TENER UN FEEDBACK DE LA LECTURA
+				int punto = nombreArchivo.indexOf(".");
+				String nombre = nombreArchivo.substring(0, punto);
+				String extension = nombreArchivo.substring(punto);
+				String nombreCopia = nombre + "-copia" + extension;
+				System.out.println(nombreCopia);
+
+				
+				
+				
 
 				// Finally, make the call using the stub
-				
-				// OBTENGO UN ITERADOR, PARA PODER RECIBIR LOS PAQUETES DE RESPUESTA DEL SERVER
-				Iterator<FtpResponseRead> responseIterator = stub
-					.withDeadlineAfter(deadlineMs, TimeUnit.MILLISECONDS)
-					.read(request);
+				while(bytes_leer > 0){
 
-				// ITERO POR CADA UNA DE LAS RESPUESTAS QUE VAN LLEGANDOS
-				System.out.println("Esta es la respuesta: ");
-				int i = 0;
-				while (responseIterator.hasNext()) {
-					System.out.println("ITERACION " + (++i));
-					FtpResponseRead response = responseIterator.next();
-					// Do something with the response object
-					//System.out.println(response);
+					FtpServiceOuterClass.FtpRequestRead request =
+						FtpServiceOuterClass.FtpRequestRead.newBuilder()
+						.setName(nombreArchivo)
+						.setPosition(offset)
+						.setBytes(bytes_leer)
+						.build();
+
+					FtpServiceOuterClass.FtpResponseRead response = stub
+						.withDeadlineAfter(deadlineMs, TimeUnit.MILLISECONDS)
+						.read(request);
+
+					File file = getFileFromResourceAsStream(nombreCopia);
+					if(file == null){
+						URL resources = getFileResources(".");
+						file = new File(resources.toURI().getPath() + nombreCopia);
+					}
+
+					System.out.println(file.getAbsolutePath());
+					FileOutputStream fos = new FileOutputStream(file, true);
+
+					fos.write(response.getData().toByteArray());
+
+					fos.close();
+
+					//System.out.println(response.getData());
+					int leidos = (int) response.getBytesReaded();
+					System.out.println("BYTES LEIDOS: " + leidos);
+					offset += leidos;
+
+					if(leidos != -1)
+						bytes_leer -= leidos;
+					else
+						bytes_leer = 0;
+						
+					System.out.println("BYTES QUE FALTAN PARA LEER: " + bytes_leer);
+					
 				}
+
+				
 
 			
 				break;
@@ -193,22 +240,14 @@ public class Client
 		
       }
       catch (Exception e){
-		System.err.println("Se produjo una excepcion: en el cliete" + e.getMessage());
+		System.err.println("Se produjo una excepcion en el cliete: " + e.getMessage());
 		System.err.println("Se procede a cerrar el canal...");
 		channel.shutdownNow().awaitTermination(5, TimeUnit.SECONDS);
 
       }
     }
 
-	private static File getFileFromResourceAsStream(String fileName) throws URISyntaxException  {
-
-		URL resource = Client.class.getClassLoader().getResource(fileName);
-
-		if(resource == null)
-			return null;
-		else
-			return new File(resource.toURI());
-	}
+	
 
 	// Función para leer los bytes desde un archivo dado una posición y cantidad de bytes
     private static byte[] leerBytesDesdeArchivo(File archivo, int pos, int cant_leer) throws IOException {

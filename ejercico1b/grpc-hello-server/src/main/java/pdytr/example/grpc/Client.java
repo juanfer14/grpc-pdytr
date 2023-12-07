@@ -33,9 +33,6 @@ public class Client
 		  		.setName("Ray")
 		  		.build();
 
-		
-
-
 		// Finally, make the call using the stub
 		GreetingServiceOuterClass.HelloResponse response = 
 			stub.withDeadlineAfter( 

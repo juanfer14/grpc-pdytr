@@ -2266,11 +2266,11 @@ public final class FtpServiceOuterClass {
       "ta\030\001 \001(\014\022\023\n\013bytesReaded\030\002 \001(\004\"=\n\014WriteRe" +
       "quest\022\025\n\rarchivo_datos\030\001 \001(\014\022\026\n\016nombre_a" +
       "rchivo\030\002 \001(\t\"&\n\rWriteResponse\022\025\n\rcant_es" +
-      "critos\030\001 \001(\0052\215\001\n\nFtpService\022A\n\004read\022\032.pd" +
+      "critos\030\001 \001(\0052\213\001\n\nFtpService\022?\n\004read\022\032.pd" +
       "ytr.grpc.FtpRequestRead\032\033.pdytr.grpc.Ftp" +
-      "ResponseRead0\001\022<\n\005write\022\030.pdytr.grpc.Wri" +
-      "teRequest\032\031.pdytr.grpc.WriteResponseb\006pr",
-      "oto3"
+      "ResponseRead\022<\n\005write\022\030.pdytr.grpc.Write" +
+      "Request\032\031.pdytr.grpc.WriteResponseb\006prot",
+      "o3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {

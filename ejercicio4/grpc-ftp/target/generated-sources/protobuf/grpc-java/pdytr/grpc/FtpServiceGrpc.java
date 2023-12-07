@@ -34,7 +34,7 @@ public final class FtpServiceGrpc {
   public static final io.grpc.MethodDescriptor<pdytr.grpc.FtpServiceOuterClass.FtpRequestRead,
       pdytr.grpc.FtpServiceOuterClass.FtpResponseRead> METHOD_READ =
       io.grpc.MethodDescriptor.<pdytr.grpc.FtpServiceOuterClass.FtpRequestRead, pdytr.grpc.FtpServiceOuterClass.FtpResponseRead>newBuilder()
-          .setType(io.grpc.MethodDescriptor.MethodType.SERVER_STREAMING)
+          .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
           .setFullMethodName(generateFullMethodName(
               "pdytr.grpc.FtpService", "read"))
           .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
@@ -109,7 +109,7 @@ public final class FtpServiceGrpc {
       return io.grpc.ServerServiceDefinition.builder(getServiceDescriptor())
           .addMethod(
             METHOD_READ,
-            asyncServerStreamingCall(
+            asyncUnaryCall(
               new MethodHandlers<
                 pdytr.grpc.FtpServiceOuterClass.FtpRequestRead,
                 pdytr.grpc.FtpServiceOuterClass.FtpResponseRead>(
@@ -154,7 +154,7 @@ public final class FtpServiceGrpc {
      */
     public void read(pdytr.grpc.FtpServiceOuterClass.FtpRequestRead request,
         io.grpc.stub.StreamObserver<pdytr.grpc.FtpServiceOuterClass.FtpResponseRead> responseObserver) {
-      asyncServerStreamingCall(
+      asyncUnaryCall(
           getChannel().newCall(METHOD_READ, getCallOptions()), request, responseObserver);
     }
 
@@ -194,9 +194,8 @@ public final class FtpServiceGrpc {
      *rpc greeting(HelloRequest) returns (stream HelloResponse);
      * </pre>
      */
-    public java.util.Iterator<pdytr.grpc.FtpServiceOuterClass.FtpResponseRead> read(
-        pdytr.grpc.FtpServiceOuterClass.FtpRequestRead request) {
-      return blockingServerStreamingCall(
+    public pdytr.grpc.FtpServiceOuterClass.FtpResponseRead read(pdytr.grpc.FtpServiceOuterClass.FtpRequestRead request) {
+      return blockingUnaryCall(
           getChannel(), METHOD_READ, getCallOptions(), request);
     }
 
@@ -227,6 +226,18 @@ public final class FtpServiceGrpc {
     protected FtpServiceFutureStub build(io.grpc.Channel channel,
         io.grpc.CallOptions callOptions) {
       return new FtpServiceFutureStub(channel, callOptions);
+    }
+
+    /**
+     * <pre>
+     * Define a RPC operation
+     *rpc greeting(HelloRequest) returns (stream HelloResponse);
+     * </pre>
+     */
+    public com.google.common.util.concurrent.ListenableFuture<pdytr.grpc.FtpServiceOuterClass.FtpResponseRead> read(
+        pdytr.grpc.FtpServiceOuterClass.FtpRequestRead request) {
+      return futureUnaryCall(
+          getChannel().newCall(METHOD_READ, getCallOptions()), request);
     }
 
     /**
