@@ -20,11 +20,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.DataInputStream;
 import java.nio.charset.StandardCharsets;
-<<<<<<< HEAD
-import java.io.FileNotFoundException;
-
-=======
->>>>>>> b7664e8 (modificando args de cliente)
 
 // ENLACES
 import java.net.URI;
