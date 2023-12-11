@@ -21,7 +21,7 @@ public class GreetingServiceImpl extends GreetingServiceGrpc.GreetingServiceImpl
     responseObserver.onNext(response);
 
 
-    System.exit(0);    
+    
 
     // When you are done, you must call onCompleted.
     responseObserver.onCompleted();

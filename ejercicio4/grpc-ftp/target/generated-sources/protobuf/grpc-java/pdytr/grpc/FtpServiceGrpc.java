@@ -31,6 +31,19 @@ public final class FtpServiceGrpc {
 
   // Static method descriptors that strictly reflect the proto.
   @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
+  public static final io.grpc.MethodDescriptor<pdytr.grpc.FtpServiceOuterClass.FtpRequestSize,
+      pdytr.grpc.FtpServiceOuterClass.FtpResponseSize> METHOD_ASK =
+      io.grpc.MethodDescriptor.<pdytr.grpc.FtpServiceOuterClass.FtpRequestSize, pdytr.grpc.FtpServiceOuterClass.FtpResponseSize>newBuilder()
+          .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+          .setFullMethodName(generateFullMethodName(
+              "pdytr.grpc.FtpService", "ask"))
+          .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+              pdytr.grpc.FtpServiceOuterClass.FtpRequestSize.getDefaultInstance()))
+          .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+              pdytr.grpc.FtpServiceOuterClass.FtpResponseSize.getDefaultInstance()))
+          .setSchemaDescriptor(new FtpServiceMethodDescriptorSupplier("ask"))
+          .build();
+  @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/1901")
   public static final io.grpc.MethodDescriptor<pdytr.grpc.FtpServiceOuterClass.FtpRequestRead,
       pdytr.grpc.FtpServiceOuterClass.FtpResponseRead> METHOD_READ =
       io.grpc.MethodDescriptor.<pdytr.grpc.FtpServiceOuterClass.FtpRequestRead, pdytr.grpc.FtpServiceOuterClass.FtpResponseRead>newBuilder()
@@ -90,8 +103,14 @@ public final class FtpServiceGrpc {
     /**
      * <pre>
      * Define a RPC operation
-     *rpc greeting(HelloRequest) returns (stream HelloResponse);
      * </pre>
+     */
+    public void ask(pdytr.grpc.FtpServiceOuterClass.FtpRequestSize request,
+        io.grpc.stub.StreamObserver<pdytr.grpc.FtpServiceOuterClass.FtpResponseSize> responseObserver) {
+      asyncUnimplementedUnaryCall(METHOD_ASK, responseObserver);
+    }
+
+    /**
      */
     public void read(pdytr.grpc.FtpServiceOuterClass.FtpRequestRead request,
         io.grpc.stub.StreamObserver<pdytr.grpc.FtpServiceOuterClass.FtpResponseRead> responseObserver) {
@@ -107,6 +126,13 @@ public final class FtpServiceGrpc {
 
     @java.lang.Override public final io.grpc.ServerServiceDefinition bindService() {
       return io.grpc.ServerServiceDefinition.builder(getServiceDescriptor())
+          .addMethod(
+            METHOD_ASK,
+            asyncUnaryCall(
+              new MethodHandlers<
+                pdytr.grpc.FtpServiceOuterClass.FtpRequestSize,
+                pdytr.grpc.FtpServiceOuterClass.FtpResponseSize>(
+                  this, METHODID_ASK)))
           .addMethod(
             METHOD_READ,
             asyncUnaryCall(
@@ -149,8 +175,15 @@ public final class FtpServiceGrpc {
     /**
      * <pre>
      * Define a RPC operation
-     *rpc greeting(HelloRequest) returns (stream HelloResponse);
      * </pre>
+     */
+    public void ask(pdytr.grpc.FtpServiceOuterClass.FtpRequestSize request,
+        io.grpc.stub.StreamObserver<pdytr.grpc.FtpServiceOuterClass.FtpResponseSize> responseObserver) {
+      asyncUnaryCall(
+          getChannel().newCall(METHOD_ASK, getCallOptions()), request, responseObserver);
+    }
+
+    /**
      */
     public void read(pdytr.grpc.FtpServiceOuterClass.FtpRequestRead request,
         io.grpc.stub.StreamObserver<pdytr.grpc.FtpServiceOuterClass.FtpResponseRead> responseObserver) {
@@ -191,8 +224,14 @@ public final class FtpServiceGrpc {
     /**
      * <pre>
      * Define a RPC operation
-     *rpc greeting(HelloRequest) returns (stream HelloResponse);
      * </pre>
+     */
+    public pdytr.grpc.FtpServiceOuterClass.FtpResponseSize ask(pdytr.grpc.FtpServiceOuterClass.FtpRequestSize request) {
+      return blockingUnaryCall(
+          getChannel(), METHOD_ASK, getCallOptions(), request);
+    }
+
+    /**
      */
     public pdytr.grpc.FtpServiceOuterClass.FtpResponseRead read(pdytr.grpc.FtpServiceOuterClass.FtpRequestRead request) {
       return blockingUnaryCall(
@@ -231,8 +270,15 @@ public final class FtpServiceGrpc {
     /**
      * <pre>
      * Define a RPC operation
-     *rpc greeting(HelloRequest) returns (stream HelloResponse);
      * </pre>
+     */
+    public com.google.common.util.concurrent.ListenableFuture<pdytr.grpc.FtpServiceOuterClass.FtpResponseSize> ask(
+        pdytr.grpc.FtpServiceOuterClass.FtpRequestSize request) {
+      return futureUnaryCall(
+          getChannel().newCall(METHOD_ASK, getCallOptions()), request);
+    }
+
+    /**
      */
     public com.google.common.util.concurrent.ListenableFuture<pdytr.grpc.FtpServiceOuterClass.FtpResponseRead> read(
         pdytr.grpc.FtpServiceOuterClass.FtpRequestRead request) {
@@ -249,8 +295,9 @@ public final class FtpServiceGrpc {
     }
   }
 
-  private static final int METHODID_READ = 0;
-  private static final int METHODID_WRITE = 1;
+  private static final int METHODID_ASK = 0;
+  private static final int METHODID_READ = 1;
+  private static final int METHODID_WRITE = 2;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -269,6 +316,10 @@ public final class FtpServiceGrpc {
     @java.lang.SuppressWarnings("unchecked")
     public void invoke(Req request, io.grpc.stub.StreamObserver<Resp> responseObserver) {
       switch (methodId) {
+        case METHODID_ASK:
+          serviceImpl.ask((pdytr.grpc.FtpServiceOuterClass.FtpRequestSize) request,
+              (io.grpc.stub.StreamObserver<pdytr.grpc.FtpServiceOuterClass.FtpResponseSize>) responseObserver);
+          break;
         case METHODID_READ:
           serviceImpl.read((pdytr.grpc.FtpServiceOuterClass.FtpRequestRead) request,
               (io.grpc.stub.StreamObserver<pdytr.grpc.FtpServiceOuterClass.FtpResponseRead>) responseObserver);
@@ -338,6 +389,7 @@ public final class FtpServiceGrpc {
         if (result == null) {
           serviceDescriptor = result = io.grpc.ServiceDescriptor.newBuilder(SERVICE_NAME)
               .setSchemaDescriptor(new FtpServiceFileDescriptorSupplier())
+              .addMethod(METHOD_ASK)
               .addMethod(METHOD_READ)
               .addMethod(METHOD_WRITE)
               .build();

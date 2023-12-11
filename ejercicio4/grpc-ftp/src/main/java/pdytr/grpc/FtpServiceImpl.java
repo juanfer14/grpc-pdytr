@@ -33,11 +33,11 @@ import com.google.protobuf.ByteString;
 
 public class FtpServiceImpl extends FtpServiceGrpc.FtpServiceImplBase {
 
-	
+	private static final int BLOQUE = 1024;
 
-	private static final String DESTINATION_FOLDER = "C:\\Users\\usuario\\Desktop\\Filesystem\\"; // Ruta de destino donde se guardarán los archivos
-
-	private static final int tam_bloque = 1024;
+	private URL getFileResources(String fileName){
+		return getClass().getClassLoader().getResource(fileName);
+	}
 
 	// FUNCION SACADA DE https://mkyong.com/java/java-read-a-file-from-resources-folder/
 	// PARA OBTENER EL ARCHIVO DESDE /src/main/resources
@@ -49,117 +49,121 @@ public class FtpServiceImpl extends FtpServiceGrpc.FtpServiceImplBase {
 	//  -SI EL ARCHIVO NO EXISTE Y SE QUIERE LEER, SE DEBE MANEJAR LA EXCEPCION
 	private File getFileFromResourceAsStream(String fileName) throws URISyntaxException  {
 
-		URL resource =  getClass().getClassLoader().getResource(fileName);
-		if(resource == null){
-
-			try {
-				File archivo = new File(fileName);
-				archivo.createNewFile();
-				return archivo;
-			} catch (IOException e) {
-            	System.out.println("Error al crear el archivo: " + e.getMessage());
-        	}
-		}
+		URL resource = getFileResources(fileName);
 		
+		if(resource == null){
+			return null;
+		}
 		return new File(resource.toURI());
 
 			
 	}
 
-	private File createNewFileInResourceFolder(String fileName) throws IOException, URISyntaxException {
-        // Obtener la URL del directorio "resources"
-        URL resourceFolderURL = getClass().getClassLoader().getResource(fileName);
+	@Override
+  	public void ask(FtpServiceOuterClass.FtpRequestSize request,
+        StreamObserver<FtpServiceOuterClass.FtpResponseSize> responseObserver) {
 
-        return new File(resourceFolderURL.toURI());
-    }
-
-	private void printFileContents(File file) throws IOException {
-    // Leer y imprimir el contenido completo del archivo
-		try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-			String line;
-			System.out.println("Contenido completo del archivo:");
-			while ((line = reader.readLine()) != null) {
-				System.out.println(line);
+			// POR DEFAULT, DEVUELVO 0 BYTES, SI EL ARCHIVO 
+			// NO EXISTE O SE LEVANTA UNA EXCEPCION
+			long bytes = 0;
+			System.out.println(request.getName());
+			try {
+				File file = getFileFromResourceAsStream(request.getName());
+				if(file != null)
+					bytes = file.length();
+			} catch(URISyntaxException e){
+				System.err.println(e.getMessage());
 			}
-		}
+			
+			// You must use a builder to construct a new Protobuffer object
+			FtpServiceOuterClass.FtpResponseSize response = 
+			FtpServiceOuterClass.FtpResponseSize.newBuilder()
+		  		.setBytes(bytes)
+			  	.build();
+	  
+		  // Use responseObserver to send a single response back
+		  responseObserver.onNext(response);
+		  // When you are done, you must call onCompleted.
+		  responseObserver.onCompleted();
 	}
 
-
-  @Override
-  public void read(FtpServiceOuterClass.FtpRequestRead request,
+  	@Override
+  	public void read(FtpServiceOuterClass.FtpRequestRead request,
         StreamObserver<FtpServiceOuterClass.FtpResponseRead> responseObserver) {
     
-    
-	// LO DEJO ACA, PARA QUE NO SEA MUY LARGO LA LINEA.
-	FtpServiceOuterClass.FtpResponseRead response;
+		// LO DEJO ACA, PARA QUE NO SEA MUY LARGA LA LINEA.
+		FtpServiceOuterClass.FtpResponseRead response;
 
-	// EN CASO DE ERROR, ENVIO ESTA RESPUESTA (BUFFER VACIO Y 0 BYTES LEIDOS)
-	byte[] buffer = new byte[0];
-	response = FtpServiceOuterClass.FtpResponseRead.newBuilder()
-			.setData(ByteString.copyFrom(buffer))
-			.setBytesReaded(0)
-			.build();
-
-
-	// HAGO UN TRY POR SI HAY ALGUN ERROR DE IO O EXCEPCION
-	try {
-
-		// LEO EL ARCHIVO DESDE /src/main/resources
-		File file = getFileFromResourceAsStream(request.getName());
-
-		// EN CASO DE NO EXISTIR EL ARCHIVO, LEVANTO LA EXCPECION
-		if(file == null)
-			throw new IOException("El archivo " + request.getName() + " no existe");
-
-		// LO CONVIERTO EN UN DATAINPUTSTREAM
-		DataInputStream dataRead = new DataInputStream(new FileInputStream(file));
-
-		dataRead.skipBytes((int)request.getPosition());
-
-
-		int bytes_leer = (int)request.getBytes();
-
-
-		if(bytes_leer > tam_bloque)
-			bytes_leer = tam_bloque;
-
-		System.out.println("BYTES A LEER " + bytes_leer);
-
-		// ASIGNO AL BUFFER LA CANTIDAD DE DATOS NECESARIOS
-		buffer = new byte[bytes_leer];
-
-		// LEO EL ARCHIVO DESDE LA POSICION INDICADA Y LA CANTIDAD INDICADA, Y GUARDO
-		// LA CANTIDAD DE BYTES QUE EFECTIVAMENTE SE LEYERON
-		int readed = dataRead.read(buffer);
-		
-		// CIERRO EL DATAINPUTSTREAM
-		dataRead.close();	
-		
-		// DEVUELVO COMO RESPUESTA EL BUFFER Y LA CANTIDAD DE BYTES LEIDOS
+		// EN CASO DE ERROR, ENVIO ESTA RESPUESTA (BUFFER VACIO Y 0 BYTES LEIDOS)
+		byte[] buffer = new byte[0];
 		response = FtpServiceOuterClass.FtpResponseRead.newBuilder()
-			.setData(ByteString.copyFrom(buffer))
-			.setBytesReaded(readed)
-			.build();
+				.setData(ByteString.copyFrom(buffer))
+				.setBytesReaded(0)
+				.build();
 
-		System.out.println("ARCHIVO LEIDO Y ENVIADO CON EXITO!");
-		
-	}
-	catch(IOException e){
-		// EN EL CASO DE NO EXISTIR EL ARCHIVO, SE LEVANTA ESTA EXCEPCION
-		System.err.println("Error de lectura del archivo: " + e.getMessage());
-		
-	}
-	catch(Exception e){
-		// EN EL CASO DE HABER UN ERROR (EJ. UNAVAILABLE), SE LEVANTA ESTA EXCEPCION
-		System.err.println("Se produjo una excepcion: " + e.getMessage());
+		// HAGO UN TRY POR SI HAY ALGUN ERROR DE IO O EXCEPCION
+		try {
+			// LEO EL ARCHIVO DESDE /src/main/resources
+			File file = getFileFromResourceAsStream(request.getName());
 
-	}
+			// EN CASO DE NO EXISTIR EL ARCHIVO, LEVANTO LA EXCPECION
+			if(file == null)
+				throw new IOException("El archivo " + request.getName() + " no existe");
 
-	// Use responseObserver to send a single response back
-	responseObserver.onNext(response);
+			// LO CONVIERTO EN UN DATAINPUTSTREAM
+			DataInputStream dataRead = new DataInputStream(new FileInputStream(file));
 
-	// When you are done, you must call onCompleted.
-	responseObserver.onCompleted();
+			// REALIZO EL OFFSET DEL LADO DEL SERVIDOR
+			dataRead.skipBytes((int)request.getPosition());
+
+			// OBTENGO DEL REQUEST, LA CANTIDAD DE BYTES A LEER
+			int bytes_leer = (int)request.getBytes();
+
+			// SI LA CANTIDAD DE BYTES A LEER, ES MAYOR QUE EL TAM. DE BLOQUE
+			// ENTONCES ENVIO EL TAM. DE BLOQUE
+			if(bytes_leer > BLOQUE)
+				bytes_leer = BLOQUE;
+
+			System.out.println("BYTES A LEER " + bytes_leer);
+
+			// ASIGNO AL BUFFER LA CANTIDAD DE DATOS NECESARIOS
+			buffer = new byte[bytes_leer];
+
+			// LEO EL ARCHIVO DESDE LA POSICION INDICADA Y LA CANTIDAD INDICADA, Y GUARDO
+			// LA CANTIDAD DE BYTES QUE EFECTIVAMENTE SE LEYERON
+			int readed = dataRead.read(buffer);
+			
+			// CIERRO EL DATAINPUTSTREAM
+			dataRead.close();	
+			
+			// DEVUELVO COMO RESPUESTA EL BUFFER Y LA CANTIDAD DE BYTES LEIDOS
+			response = FtpServiceOuterClass.FtpResponseRead.newBuilder()
+				.setData(ByteString.copyFrom(buffer))
+				.setBytesReaded(readed)
+				.build();
+
+			System.out.println("ARCHIVO LEIDO Y ENVIADO CON EXITO!");
+			
+		}
+		catch(URISyntaxException e){
+			System.err.println("Error en la URI del archivo: " + e.getMessage());
+		}
+		catch(IOException e){
+			// EN EL CASO DE NO EXISTIR EL ARCHIVO, SE LEVANTA ESTA EXCEPCION
+			System.err.println("Error de lectura del archivo: " + e.getMessage());
+			
+		}
+		catch(Exception e){
+			// EN EL CASO DE HABER UN ERROR (EJ. UNAVAILABLE), SE LEVANTA ESTA EXCEPCION
+			System.err.println("Se produjo una excepcion: " + e.getMessage());
+
+		}
+
+		// Use responseObserver to send a single response back
+		responseObserver.onNext(response);
+
+		// When you are done, you must call onCompleted.
+		responseObserver.onCompleted();
 }
 
     
@@ -167,12 +171,9 @@ public class FtpServiceImpl extends FtpServiceGrpc.FtpServiceImplBase {
   	public void write(FtpServiceOuterClass.WriteRequest request,
         StreamObserver<FtpServiceOuterClass.WriteResponse> responseObserver) {
 	
-	// Obtengo los datos del archivo desde el request
-		
+		// Obtengo los datos del archivo desde el request
         ByteString archivoDatos = request.getArchivoDatos();
-		
         String nombreArchivo = request.getNombreArchivo();
-		// String nombreArchivo = "audio3.mp3";
 
 		// SE CREA UN ARCHIVO, A MODO DE EJEMPLO, PARA TENER UN FEEDBACK DE LA LECTURA
 		int punto = nombreArchivo.indexOf(".");
@@ -180,6 +181,7 @@ public class FtpServiceImpl extends FtpServiceGrpc.FtpServiceImplBase {
 		String extension = nombreArchivo.substring(punto);
 		nombreArchivo = nombre + "-copia" + extension;
 		
+
         byte[] byteArray = archivoDatos.toByteArray();
 
         // Imprimir los datos del ByteString
@@ -191,33 +193,55 @@ public class FtpServiceImpl extends FtpServiceGrpc.FtpServiceImplBase {
 
         // Genera una ruta de destino para guardar el archivo
 
+		// DECLARO LA RESPUESTA A DEVOLVER
+		FtpServiceOuterClass.WriteResponse response;
+
+		// INSTANCIO UNA RESPUESTA POR DEFAULT, EN EL CASO DE HABER UNA EXCEPCION
+		response = FtpServiceOuterClass.WriteResponse.newBuilder()
+				.setCantEscritos(-1)
+				.build();
+
 		// ESCRIBO EL ARCHIVO EN /src/main/resources
 		try {
             // Obtener el archivo desde la carpeta "resources"
             File file = getFileFromResourceAsStream(nombreArchivo);
 
+			// SI EL ARCHIVO NO EXISTE, SE LO CREA
+			if(file == null)
+				try {
+					URL resources = getFileResources(".");
+					file = new File(resources.toURI().getPath() + nombreArchivo);
+					file.createNewFile();
+				} catch (IOException e) {
+					System.err.println("Error al crear el archivo: " + e.getMessage());
+				}
+			
+
+			// SE INSTANCIO UN FileOutputStream PARA ESCRIBIR EN MODO APPEND
 			try (FileOutputStream fileOutputStream = new FileOutputStream(file, true)) {
                 	fileOutputStream.write(byteArray);
 					fileOutputStream.flush();
-            }
-				 
-
-			} catch (URISyntaxException | IOException e) {
-				System.out.println("Ocurrió un error en el server...\n\n");
+            } catch (IOException e) {
+				System.err.println("Ocurrió un error en el server...\n\n");
 				e.printStackTrace();
 			}
+
+			// Crea una respuesta para notificar la cantidad de bytes leídos
+        	response = FtpServiceOuterClass.WriteResponse.newBuilder()
+				.setCantEscritos(cantLeidos)
+				.build();
+
+		} catch (URISyntaxException e){
+			System.err.println("Error en la URI del archivo: " + e.getMessage());
+		} catch(Exception e){
+			System.err.println("Se produjo una excepcion: " + e.getMessage());
+		}
 		
+		// Use responseObserver to send a single response back
+		responseObserver.onNext(response);
 
-        // Crea una respuesta para notificar la cantidad de bytes leídos
-        FtpServiceOuterClass.WriteResponse response = FtpServiceOuterClass.WriteResponse.newBuilder()
-            .setCantEscritos(cantLeidos)
-            .build();
-
-    // Use responseObserver to send a single response back
-    responseObserver.onNext(response);
-
-    // When you are done, you must call onCompleted.
-    responseObserver.onCompleted();
+		// When you are done, you must call onCompleted.
+		responseObserver.onCompleted();
   }
 
 }

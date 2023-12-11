@@ -30,6 +30,8 @@ public class Client
 		  .setName("Ray")
 		  .build();
 
+            System.exit(0);
+
 	      // Finally, make the call using the stub
 	      GreetingServiceOuterClass.HelloResponse response = 
 		stub.greeting(request);
